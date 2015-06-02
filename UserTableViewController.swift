@@ -128,6 +128,7 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
                                     } else {
                                         senderUsername = "unknown user"
                                     }
+                                    
                                     // create an alert view
                                     self.alert(senderUsername, photo: photo!, image: image)
                                 }
