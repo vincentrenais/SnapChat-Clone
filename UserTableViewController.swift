@@ -22,19 +22,23 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
         dismissViewControllerAnimated(false, completion: nil)
     }
     
+    
     // timer variable
     var timer = NSTimer()
+    
     
     // image picker controller
     func imagePickerController(picker: UIImagePickerController, didFinishPickingImage image: UIImage!, editingInfo: [NSObject : AnyObject]!) {
         self.dismissViewControllerAnimated(true, completion: nil)
         // upload to parse
         var imageSend = PFObject(className: "Image")
+        imageSend.ACL?.setPublicWriteAccess(true)
         imageSend["image"] = PFFile(name: "image.jpg", data: UIImageJPEGRepresentation(image, 0.5))
         imageSend["sender"] = PFUser.currentUser()?.username
         imageSend["receiver"] = userArray[activeUser]
         imageSend.save()
     }
+    
     
     func pickImage(sender:AnyObject) {
         var image = UIImagePickerController()
@@ -44,6 +48,7 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
         self.presentViewController(image, animated: true, completion: nil)
     }
 
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -65,6 +70,7 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
         
     }
 
+    
     func loadImages() {
         var backgroundView = UIImageView(frame: CGRectMake(0, 0, self.view.frame.width, self.view.frame.height))
         backgroundView.backgroundColor = UIColor.blackColor()
@@ -91,7 +97,13 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
             // var for displayed image
             self.displayImages(photo)
             //delete image
-            image.delete()
+            image.deleteInBackgroundWithBlock({ (success, error) -> Void in
+                if success == true {
+                    println("Bravo")
+                } else {
+                    println("didn't work")
+                }
+            })
             // hide message
             self.timer = NSTimer.scheduledTimerWithTimeInterval(5, target: self, selector: Selector("hideMessage"), userInfo: nil, repeats: false)
         }))
@@ -100,6 +112,7 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
             self.messageCount++
         }
     }
+    
     
     func checkForMessages() {
         println("Checking for messages")
@@ -128,10 +141,10 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
                                     } else {
                                         senderUsername = "unknown user"
                                     }
-                                    
                                     // create an alert view
                                     self.alert(senderUsername, photo: photo!, image: image)
                                 }
+
                             })
                             done = true
                         }
@@ -142,6 +155,7 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
         
     }
     
+    
     func hideMessage(){
         for subview in self.view.subviews {
             if subview.tag == 3 {
@@ -151,22 +165,13 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
     }
     
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
     // MARK: - Table view data source
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        // #warning Potentially incomplete method implementation.
-        // Return the number of sections.
         return 1
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete method implementation.
-        // Return the number of rows in the section.
         return userArray.count
     }
 
@@ -183,51 +188,4 @@ class UserTableViewController: UITableViewController, UINavigationControllerDele
         activeUser = indexPath.row
         pickImage(self)
     }
-    
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return NO if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
-            // Delete the row from the data source
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        } else if editingStyle == .Insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return NO if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
